@@ -47,7 +47,10 @@ public class FXMLController {
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
-    	
+    	txtResult.clear();
+    	Match m=this.cmbMatch.getValue();
+    	//txtResult.appendText(model.listAllPlayersByMatch(m)+"");
+    	txtResult.appendText(model.creaGrafo(m));
     }
 
     @FXML
@@ -68,10 +71,11 @@ public class FXMLController {
         assert cmbMatch != null : "fx:id=\"cmbMatch\" was not injected: check your FXML file 'Scene.fxml'.";
         assert txtN != null : "fx:id=\"txtN\" was not injected: check your FXML file 'Scene.fxml'.";
         assert txtResult != null : "fx:id=\"txtResult\" was not injected: check your FXML file 'Scene.fxml'.";
-
+        
     }
     
     public void setModel(Model model) {
     	this.model = model;
+    	cmbMatch.getItems().addAll(model.listAllMatches());
     }
 }

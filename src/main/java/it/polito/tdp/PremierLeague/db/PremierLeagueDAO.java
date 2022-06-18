@@ -111,4 +111,55 @@ public class PremierLeagueDAO {
 		}
 	}
 	
+	public List<Player> listAllPlayersByMatch(Match m){
+		String sql = "SELECT p.PlayerID, p.Name "
+				+ "FROM actions a, players p "
+				+ "WHERE p.PlayerID=a.PlayerID and MatchId=?";
+		List<Player> result = new ArrayList<Player>();
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, m.getMatchID());
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+
+				Player player = new Player(res.getInt("PlayerID"), res.getString("Name"));
+				result.add(player);
+			}
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public Action actionsByPlayerAndMatch(Player p, Match m){
+		String sql = "SELECT * "
+				+ "FROM actions a "
+				+ "WHERE MatchId=? AND PlayerId=?";
+		
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, m.getMatchID());
+			st.setInt(2, p.getPlayerID());
+			ResultSet res = st.executeQuery();
+			res.first();
+			Action azione= new Action(res.getInt("PlayerID"),res.getInt("MatchID"),res.getInt("TeamID"),res.getInt("Starts"),res.getInt("Goals"),
+					res.getInt("TimePlayed"),res.getInt("RedCards"),res.getInt("YellowCards"),res.getInt("TotalSuccessfulPassesAll"),res.getInt("totalUnsuccessfulPassesAll"),
+					res.getInt("Assists"),res.getInt("TotalFoulsConceded"),res.getInt("Offsides"));
+			
+			conn.close();
+			return azione;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
 }
