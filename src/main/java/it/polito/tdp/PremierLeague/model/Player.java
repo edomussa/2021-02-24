@@ -9,8 +9,8 @@ public class Player {
 		super();
 		this.playerID = playerID;
 		this.name = name;
-		//this.efficienza=0;
-		//this.team=null;
+		this.efficienza=0;
+		this.team=null;
 	}
 	
 	public Integer getPlayerID() {
@@ -62,6 +62,9 @@ public class Player {
 	
 	public void calcolaEfficienza(int SP, int AS, int TP) {
 		efficienza=((SP+AS)/TP);
+	}
+	public void setEfficienza(double efficienza) {
+		this.efficienza=efficienza;
 	}
 
 	public Team getTeam() {

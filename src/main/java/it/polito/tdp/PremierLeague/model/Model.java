@@ -1,6 +1,7 @@
 package it.polito.tdp.PremierLeague.model;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +16,7 @@ public class Model {
 	
 	private PremierLeagueDAO dao;
 	private Map<Integer,Team> idMap;
+	private List<Player> giocatori;
 	int SP;
 	int AS;
 	int TP;
@@ -25,6 +27,11 @@ public class Model {
 	public Model() {
 		dao= new PremierLeagueDAO();
 		idMap=new HashMap<>();
+		giocatori=new LinkedList<>();
+		
+		for(Team t:dao.listAllTeams()) {
+			idMap.put(t.teamID, t);
+		}
 		
 	}
 	
@@ -33,9 +40,7 @@ public class Model {
 	}
 	
 	public void listAllTeams(){
-		for(Team t:dao.listAllTeams()) {
-			idMap.put(t.teamID, t);
-		}
+		
 	}
 	
 	public List<Player> listAllPlayersByMatch(Match m){
@@ -46,31 +51,45 @@ public class Model {
 		return dao.actionsByPlayerAndMatch(p, m);
 	}
 	
+	public void setSquadra(Match m) {
+		for(Player p:giocatori) {
+			if(p.getTeam()==null) {
+				Action a=this.actionsByPlayerAndMatch(p, m);
+				p.setTeam(idMap.get(a.getTeamID()));
+			}
+		}
+	}
+	
 	public void calcolaEfficienza(Match m){
 		
-		for(Player p:this.listAllPlayersByMatch(m)) {
+		for(Player p:giocatori) {
+			Action a=this.actionsByPlayerAndMatch(p, m);
+			SP=a.getTotalSuccessfulPassesAll();
+			AS=a.getAssists();
+			TP=a.getTimePlayed();
+			//this.listAllTeams();
 			
-			SP=this.actionsByPlayerAndMatch(p, m).getTotalSuccessfulPassesAll();
-			AS=this.actionsByPlayerAndMatch(p, m).getAssists();
-			TP=this.actionsByPlayerAndMatch(p, m).getTimePlayed();
-			Team t=idMap.get(this.actionsByPlayerAndMatch(p, m).getTeamID());
-			p.calcolaEfficienza(SP, AS, TP);
+			double efficienza=0.0;
+			int parziale=0;
+			parziale=SP+AS;
+			efficienza=(parziale/TP);
+			p.setEfficienza(efficienza);
 			
-			if(p.getTeam()==null)
-				p.setTeam(t);
+			
 		}
 	}
 	
 	public String creaGrafo(Match m) {
-		
+		giocatori=this.listAllPlayersByMatch(m);
 		grafo=new SimpleDirectedWeightedGraph<>(DefaultWeightedEdge.class);
 		
-		//Graphs.addAllVertices(grafo, this.listAllPlayersByMatch(m));
+		Graphs.addAllVertices(grafo, this.listAllPlayersByMatch(m));
 		
+		this.setSquadra(m);
 		this.calcolaEfficienza(m);
 		
-		for(Player p:this.listAllPlayersByMatch(m)) {
-			for(Player pl:this.listAllPlayersByMatch(m)) {
+		for(Player p:giocatori) {
+			for(Player pl:giocatori) {
 				if(p.getTeam()!=pl.getTeam()) {
 					if(p.getEfficienza()>pl.getEfficienza()) {
 						Graphs.addEdgeWithVertices(grafo, p, pl, p.getEfficienza()-pl.getEfficienza());
@@ -82,7 +101,7 @@ public class Model {
 			}
 		}
 		
-		String s="#Vertici= "+this.grafo.vertexSet().size()+" #Archi= "+ this.grafo.edgeSet().size();
+		String s="#Vertici= "+this.grafo.vertexSet().size()+" #Archi= "+ this.grafo.edgeSet().size()+this.grafo.edgeSet();
 		
 		return s;
 	}

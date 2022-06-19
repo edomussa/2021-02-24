@@ -49,7 +49,6 @@ public class FXMLController {
     void doCreaGrafo(ActionEvent event) {
     	txtResult.clear();
     	Match m=this.cmbMatch.getValue();
-    	//txtResult.appendText(model.listAllPlayersByMatch(m)+"");
     	txtResult.appendText(model.creaGrafo(m));
     }
 
