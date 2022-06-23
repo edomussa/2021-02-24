@@ -17,9 +17,9 @@ public class Model {
 	private PremierLeagueDAO dao;
 	private Map<Integer,Team> idMap;
 	private List<Player> giocatori;
-	int SP;
-	int AS;
-	int TP;
+	double SP;
+	double AS;
+	double TP;
 
 	
 	private Graph<Player,DefaultWeightedEdge> grafo;
@@ -29,9 +29,7 @@ public class Model {
 		idMap=new HashMap<>();
 		giocatori=new LinkedList<>();
 		
-		for(Team t:dao.listAllTeams()) {
-			idMap.put(t.teamID, t);
-		}
+		
 		
 	}
 	
@@ -39,9 +37,7 @@ public class Model {
 		return dao.listAllMatches();
 	}
 	
-	public void listAllTeams(){
-		
-	}
+	
 	
 	public List<Player> listAllPlayersByMatch(Match m){
 		return dao.listAllPlayersByMatch(m);
@@ -51,16 +47,16 @@ public class Model {
 		return dao.actionsByPlayerAndMatch(p, m);
 	}
 	
-	public void setSquadra(Match m) {
+	/*public void setSquadra(Match m) {
 		for(Player p:giocatori) {
 			if(p.getTeam()==null) {
 				Action a=this.actionsByPlayerAndMatch(p, m);
 				p.setTeam(idMap.get(a.getTeamID()));
 			}
 		}
-	}
+	}*/
 	
-	public void calcolaEfficienza(Match m){
+	/*public void calcolaEfficienza(Match m){
 		
 		for(Player p:giocatori) {
 			Action a=this.actionsByPlayerAndMatch(p, m);
@@ -77,33 +73,84 @@ public class Model {
 			
 			
 		}
-	}
+	}*/
 	
 	public String creaGrafo(Match m) {
+		
+		for(Team t:dao.listAllTeams()) {
+			idMap.put(t.teamID, t);
+		}
+		
 		giocatori=this.listAllPlayersByMatch(m);
 		grafo=new SimpleDirectedWeightedGraph<>(DefaultWeightedEdge.class);
 		
 		Graphs.addAllVertices(grafo, this.listAllPlayersByMatch(m));
 		
-		this.setSquadra(m);
-		this.calcolaEfficienza(m);
-		
 		for(Player p:giocatori) {
+			Action a=this.actionsByPlayerAndMatch(p, m);
+			if(p.getTeam()==null) {
+				p.setTeam(idMap.get(a.getTeamID()));
+			}
+		
+		
+			
+			SP=a.getTotalSuccessfulPassesAll();
+			AS=a.getAssists();
+			TP=a.getTimePlayed();
+			//this.listAllTeams();
+			
+			double efficienza=0.0;
+			double parziale=0;
+			parziale=SP+AS;
+			efficienza=(parziale/TP);
+			p.setEfficienza(efficienza);
+			
+		}
+		
+		for(Player pll:giocatori) {
 			for(Player pl:giocatori) {
-				if(p.getTeam()!=pl.getTeam()) {
-					if(p.getEfficienza()>pl.getEfficienza()) {
-						Graphs.addEdgeWithVertices(grafo, p, pl, p.getEfficienza()-pl.getEfficienza());
+				if(pll.getTeam()!=pl.getTeam()) {
+					if(pll.getEfficienza()>pl.getEfficienza()) {
+						Graphs.addEdgeWithVertices(grafo, pll, pl, pll.getEfficienza()-pl.getEfficienza());
 					}
-					else if(pl.getEfficienza()>p.getEfficienza()) {
-						Graphs.addEdgeWithVertices(grafo, pl, p, pl.getEfficienza()-p.getEfficienza());
+					else if(pl.getEfficienza()>pll.getEfficienza()) {
+					Graphs.addEdgeWithVertices(grafo, pl, pll, pl.getEfficienza()-pll.getEfficienza());
+					}
+					else if(pl.getEfficienza()==pll.getEfficienza()) {
+						Graphs.addEdgeWithVertices(grafo, pl, pll, pl.getEfficienza()-pll.getEfficienza());
 					}
 				}
 			}
 		}
 		
-		String s="#Vertici= "+this.grafo.vertexSet().size()+" #Archi= "+ this.grafo.edgeSet().size()+this.grafo.edgeSet();
+		String s="#Vertici= "+this.grafo.vertexSet().size()+" #Archi= "+ this.grafo.edgeSet().size();//+this.grafo.edgeSet();
 		
 		return s;
+	}
+	
+	public String giocatoreMigliore(Match m) {
+		
+		this.creaGrafo(m);
+		Player best=null;
+		double tot=0;
+		
+		for(Player g:grafo.vertexSet()) {
+			double parz=0;
+			
+			for(DefaultWeightedEdge e: grafo.outgoingEdgesOf(g)) 
+				parz=parz + grafo.getEdgeWeight(e);
+			
+			for(DefaultWeightedEdge e: grafo.incomingEdgesOf(g))
+				parz=parz + grafo.getEdgeWeight(e);
+			
+			if(parz>=tot) {
+				tot=parz;
+				best=g;
+			}
+		}
+		
+		return best+" "+tot;
+		
 	}
 	
 }

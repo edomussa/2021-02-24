@@ -49,12 +49,13 @@ public class FXMLController {
     void doCreaGrafo(ActionEvent event) {
     	txtResult.clear();
     	Match m=this.cmbMatch.getValue();
-    	txtResult.appendText(model.creaGrafo(m));
+    	txtResult.appendText(model.creaGrafo(m)+"\n");
     }
 
     @FXML
-    void doGiocatoreMigliore(ActionEvent event) {    	
-    	
+    void doGiocatoreMigliore(ActionEvent event) {
+    	Match m=this.cmbMatch.getValue();
+    	txtResult.appendText(model.giocatoreMigliore(m)+"");
     }
     
     @FXML
